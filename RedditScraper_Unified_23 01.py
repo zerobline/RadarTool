@@ -8,8 +8,14 @@ Shared: pain score, sentiment, txt digest writer, all filters, dedup.
 """
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
-import threading, json, os, subprocess, time, re, urllib.request, urllib.parse
+import threading, json, os, subprocess, sys, time, re, urllib.request, urllib.parse
 from datetime import datetime
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 # ── Optional imports ──────────────────────────────────────────────────────────
 try:
@@ -32,9 +38,9 @@ except ImportError:
 CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            "reddit_unified_config.json")
 DEFAULT_CONFIG = {
-    "client_id":     "q2aLKPlqSYpXemShOPiPdA",
-    "client_secret": "caGn_Rh5gQQ8vsBKsfMI0N4k7qFjBw",
-    "user_agent":    "UnifiedScraper",
+    "client_id":     os.environ.get("REDDIT_CLIENT_ID", ""),
+    "client_secret": os.environ.get("REDDIT_CLIENT_SECRET", ""),
+    "user_agent":    os.environ.get("REDDIT_USER_AGENT", "UnifiedScraper"),
     # Subreddit mode
     "subreddit":     "",
     "post_type":     "top",
@@ -57,7 +63,7 @@ DEFAULT_CONFIG = {
     "min_ratio":     "0",
     "min_resonance": "0",
     "max_resonance": "100",
-    "output_dir":    r"D:\OneDriveLubos\OneDrive\Desktop\RedditScrapping",
+    "output_dir":    os.path.join(os.path.expanduser("~"), "RedditScrapping"),
     "mode":          "subreddit",
 }
 
@@ -94,6 +100,14 @@ def save_config(cfg):
     try:
         with open(CONFIG_PATH,"w") as f: json.dump(cfg,f,indent=2)
     except Exception: pass
+
+def _open_file(path):
+    if sys.platform == "win32":
+        os.startfile(path)
+    elif sys.platform == "darwin":
+        subprocess.run(["open", path])
+    else:
+        subprocess.run(["xdg-open", path])
 
 def get_sentiment(text):
     if not VADER_OK or not text or text in ("[No comments]","[Link Post]"):
@@ -1354,7 +1368,7 @@ class App(tk.Tk):
         br=tk.Frame(win,bg=PANEL); br.pack(pady=(0,20),padx=32)
         tk.Button(br,text="Open file",font=FN_BTN,bg=ACCENT,fg=TEXT,relief="flat",
                   padx=14,pady=6,cursor="hand2",bd=0,activebackground=ACCENT2,
-                  command=lambda: subprocess.run(["start","",path],shell=True)
+                  command=lambda: _open_file(path)
                   ).pack(side="left",padx=(0,8))
         tk.Button(br,text="Close",font=FN_BTN,bg=INPUT_BG,fg=TEXT,relief="flat",
                   padx=14,pady=6,cursor="hand2",bd=0,activebackground=HOVER,

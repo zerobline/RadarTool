@@ -1,0 +1,45 @@
+# Credentials & config (may contain secrets)
+.env
+reddit_unified_config.json
+
+# Deduplication tracking files
+*.ids
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Output files (optional — remove if you want to track scraped output)
+*.txt
+!requirements.txt
