@@ -1,0 +1,11 @@
+# Core scraping
+praw>=7.7.0
+
+# Sentiment analysis
+vaderSentiment>=3.3.2
+
+# .env file support
+python-dotenv>=1.0.0
+
+# Windows-only desktop notifications (optional, install only on Windows)
+# win10toast>=0.9; sys_platform == "win32"
