@@ -2,6 +2,7 @@ import json
 import os
 import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, date, timedelta
@@ -108,8 +109,23 @@ def fetch_arctic_posts(query, subreddit, date_from, date_to, sort, limit):
                 page_params["after"] = cursor
         url = f"https://arctic-shift.photon-reddit.com/api/posts/search?{urllib.parse.urlencode(page_params)}"
         req = urllib.request.Request(url, headers={"User-Agent": "UnifiedScraper/1.0"})
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            payload = json.loads(resp.read())
+        try:
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                payload = json.loads(resp.read())
+        except urllib.error.HTTPError as exc:
+            body = ""
+            try:
+                body = exc.read().decode("utf-8", errors="ignore")[:300]
+            except Exception:
+                pass
+            raise RuntimeError(f"Arctic Shift request failed ({exc.code} {exc.reason}). {body}".strip()) from exc
+        except urllib.error.URLError as exc:
+            raise RuntimeError(f"Arctic Shift network error: {exc.reason}") from exc
+        except TimeoutError as exc:
+            raise RuntimeError("Arctic Shift request timed out.") from exc
+
+        if "error" in payload:
+            raise RuntimeError(f"Arctic Shift API error: {payload['error']}")
         batch = payload.get("data", [])
         if not batch:
             break
@@ -244,7 +260,21 @@ def main():
                     continue
         else:
             with st.spinner("Fetching Arctic Shift posts..."):
-                arctic = fetch_arctic_posts(as_query, as_subreddit, as_date_from, as_date_to, as_sort, post_limit)
+                if as_date_from > as_date_to:
+                    st.error("Date from must be earlier than or equal to date to.")
+                    st.stop()
+                try:
+                    arctic = fetch_arctic_posts(
+                        as_query,
+                        as_subreddit,
+                        as_date_from,
+                        as_date_to,
+                        as_sort,
+                        post_limit,
+                    )
+                except RuntimeError as exc:
+                    st.error(str(exc))
+                    st.stop()
             for p in arctic:
                 posts.append({
                     "post_id": p.get("id", ""),
