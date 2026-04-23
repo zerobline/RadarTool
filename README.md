@@ -84,6 +84,17 @@ Windows toast notifications require the optional `win10toast` package:
 pip install win10toast
 ```
 
+
+## Streamlit Web App
+
+You can now run a web UI with Streamlit:
+
+```bash
+streamlit run streamlit_app.py
+```
+
+The Streamlit app supports Subreddit, Search, and Arctic Shift modes and lets you download results as JSON.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
